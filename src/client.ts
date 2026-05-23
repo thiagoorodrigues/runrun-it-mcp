@@ -26,7 +26,7 @@ export class RunrunClient {
   }
 
   private buildUrl(path: string, params: QueryParams): string {
-    const url = new URL(this.config.baseUrl + path);
+    const url = new URL(this.config.baseUrl.replace(/\/$/, "") + path);
     for (const [key, value] of Object.entries(params)) {
       if (value === undefined) continue;
       url.searchParams.set(key, String(value));

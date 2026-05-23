@@ -94,4 +94,15 @@ describe("RunrunClient.get", () => {
     const client = new RunrunClient(baseConfig);
     await expect(client.get("/users")).rejects.toThrow("ECONNREFUSED");
   });
+
+  it("normalizes trailing slash in baseUrl", async () => {
+    (global.fetch as any).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({})
+    });
+    const client = new RunrunClient({ ...baseConfig, baseUrl: "https://runrun.it/api/v1.0/" });
+    await client.get("/users/me");
+    expect((global.fetch as any).mock.calls[0][0]).toBe("https://runrun.it/api/v1.0/users/me");
+  });
 });
