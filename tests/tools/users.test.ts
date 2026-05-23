@@ -1,10 +1,7 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { createUsersTools } from "../../src/tools/users.js";
 import { RunrunApiError } from "../../src/errors.js";
-
-function mockClient(getImpl: any) {
-  return { get: vi.fn(getImpl) } as any;
-}
+import { mockClient } from "../helpers/mock-client.js";
 
 describe("users_list", () => {
   it("calls /users with pagination defaults and returns success", async () => {
