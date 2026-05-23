@@ -1,0 +1,89 @@
+import { describe, it, expect } from "vitest";
+import { createTasksTools } from "../../src/tools/tasks.js";
+import { RunrunApiError } from "../../src/errors.js";
+import { mockClient } from "../helpers/mock-client.js";
+
+describe("tasks_list", () => {
+  it("calls /tasks with pagination defaults and all filters undefined", async () => {
+    const client = mockClient(async () => []);
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_list")!;
+    await tool.handler({});
+    expect(client.get).toHaveBeenCalledWith("/tasks", {
+      page: 1,
+      limit: 50,
+      board_id: undefined,
+      project_id: undefined,
+      client_id: undefined,
+      responsible_id: undefined,
+      type_id: undefined,
+      is_closed: undefined
+    });
+  });
+
+  it("forwards all filter fields", async () => {
+    const client = mockClient(async () => []);
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_list")!;
+    await tool.handler({
+      board_id: 1,
+      project_id: 2,
+      client_id: 3,
+      responsible_id: 4,
+      type_id: 5,
+      is_closed: false,
+      page: 2,
+      limit: 25
+    });
+    expect(client.get).toHaveBeenCalledWith("/tasks", {
+      page: 2,
+      limit: 25,
+      board_id: 1,
+      project_id: 2,
+      client_id: 3,
+      responsible_id: 4,
+      type_id: 5,
+      is_closed: false
+    });
+  });
+
+  it("returns isError on API error", async () => {
+    const client = mockClient(async () => {
+      throw new RunrunApiError(429, "Too Many Requests", "/tasks");
+    });
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_list")!;
+    const res = await tool.handler({});
+    expect(res.isError).toBe(true);
+    expect(res.content[0].text).toContain("rate limit");
+  });
+});
+
+describe("tasks_get", () => {
+  it("calls /tasks/:id", async () => {
+    const client = mockClient(async () => ({ id: 7 }));
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_get")!;
+    const res = await tool.handler({ id: 7 });
+    expect(client.get).toHaveBeenCalledWith("/tasks/7");
+    expect(JSON.parse(res.content[0].text)).toEqual({ id: 7 });
+  });
+});
+
+describe("tasks_comments_list", () => {
+  it("calls /tasks/:task_id/comments with pagination", async () => {
+    const client = mockClient(async () => []);
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_comments_list")!;
+    await tool.handler({ task_id: 100 });
+    expect(client.get).toHaveBeenCalledWith("/tasks/100/comments", { page: 1, limit: 50 });
+  });
+});
+
+describe("tasks_time_entries_list", () => {
+  it("calls /time_entries with task_id filter and pagination", async () => {
+    const client = mockClient(async () => []);
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_time_entries_list")!;
+    await tool.handler({ task_id: 200 });
+    expect(client.get).toHaveBeenCalledWith("/time_entries", {
+      task_id: 200,
+      page: 1,
+      limit: 50
+    });
+  });
+});
