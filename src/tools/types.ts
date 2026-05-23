@@ -6,7 +6,7 @@ export interface ToolDefinition {
   config: {
     title: string;
     description: string;
-    inputSchema: ZodRawShape;
+    inputSchema?: ZodRawShape;
   };
   handler: (input: any) => Promise<McpToolResponse>;
 }
