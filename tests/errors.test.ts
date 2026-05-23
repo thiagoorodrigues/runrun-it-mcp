@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { successResponse, apiErrorResponse, networkErrorResponse, RunrunApiError } from "../src/errors.js";
+import { successResponse, apiErrorResponse, networkErrorResponse, genericErrorResponse, RunrunApiError } from "../src/errors.js";
 
 describe("successResponse", () => {
   it("wraps data as MCP text content", () => {
@@ -33,5 +33,26 @@ describe("networkErrorResponse", () => {
     expect(r.isError).toBe(true);
     expect(r.content[0].text).toContain("Network error");
     expect(r.content[0].text).toContain("ECONNREFUSED");
+  });
+});
+
+describe("genericErrorResponse", () => {
+  it("routes RunrunApiError to apiErrorResponse", () => {
+    const err = new RunrunApiError(404, "Not Found", "tasks/1");
+    const r = genericErrorResponse(err);
+    expect(r.isError).toBe(true);
+    expect(r.content[0].text).toContain("404");
+  });
+
+  it("routes plain Error to networkErrorResponse", () => {
+    const r = genericErrorResponse(new Error("ETIMEDOUT"));
+    expect(r.isError).toBe(true);
+    expect(r.content[0].text).toContain("Network error");
+  });
+
+  it("handles non-Error throws (string)", () => {
+    const r = genericErrorResponse("something exploded");
+    expect(r.isError).toBe(true);
+    expect(r.content[0].text).toContain("something exploded");
   });
 });
