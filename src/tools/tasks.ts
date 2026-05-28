@@ -153,6 +153,51 @@ export function createTasksTools(client: RunrunClient): ToolDefinition[] {
           return genericErrorResponse(e);
         }
       }
+    },
+    {
+      name: "tasks_update",
+      config: {
+        title: "Update Task",
+        description: "Update fields of an existing task. Only provided fields are changed.",
+        inputSchema: {
+          id: z.number().int().positive(),
+          title: z.string().min(1).optional(),
+          project_id: z.number().int().positive().optional(),
+          responsible_id: z.number().int().positive().optional(),
+          board_id: z.number().int().positive().optional(),
+          type_id: z.number().int().positive().optional(),
+          due_date: z.string().optional(),
+          description: z.string().optional(),
+          estimated_work_hours: z.number().positive().optional()
+        }
+      },
+      handler: async (input: {
+        id: number;
+        title?: string;
+        project_id?: number;
+        responsible_id?: number;
+        board_id?: number;
+        type_id?: number;
+        due_date?: string;
+        description?: string;
+        estimated_work_hours?: number;
+      }) => {
+        try {
+          const task: Record<string, unknown> = {};
+          if (input.title !== undefined) task.title = input.title;
+          if (input.project_id !== undefined) task.project_id = input.project_id;
+          if (input.responsible_id !== undefined) task.responsible_id = input.responsible_id;
+          if (input.board_id !== undefined) task.board_id = input.board_id;
+          if (input.type_id !== undefined) task.type_id = input.type_id;
+          if (input.due_date !== undefined) task.due_date = input.due_date;
+          if (input.description !== undefined) task.description = input.description;
+          if (input.estimated_work_hours !== undefined) task.estimated_work_hours = input.estimated_work_hours;
+          const data = await client.patch(`/tasks/${input.id}`, { task });
+          return successResponse(data);
+        } catch (e) {
+          return genericErrorResponse(e);
+        }
+      }
     }
   ];
 }

@@ -142,3 +142,43 @@ describe("tasks_create", () => {
     expect(res.isError).toBe(true);
   });
 });
+
+describe("tasks_update", () => {
+  it("calls PATCH /tasks/:id with provided fields only", async () => {
+    const client = mockClient(
+      async () => ({}),
+      async () => ({}),
+      async () => ({ id: 7, title: "Updated" })
+    );
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_update")!;
+    const res = await tool.handler({ id: 7, title: "Updated", responsible_id: 3 });
+    expect(client.patch).toHaveBeenCalledWith("/tasks/7", {
+      task: { title: "Updated", responsible_id: 3 }
+    });
+    expect(JSON.parse(res.content[0].text)).toMatchObject({ id: 7 });
+  });
+
+  it("sends only the fields provided", async () => {
+    const client = mockClient(
+      async () => ({}),
+      async () => ({}),
+      async () => ({ id: 5 })
+    );
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_update")!;
+    await tool.handler({ id: 5, due_date: "2026-07-01" });
+    expect(client.patch).toHaveBeenCalledWith("/tasks/5", {
+      task: { due_date: "2026-07-01" }
+    });
+  });
+
+  it("returns isError on API error", async () => {
+    const client = mockClient(
+      async () => ({}),
+      async () => ({}),
+      async () => { throw new RunrunApiError(404, "Not Found", "/tasks/999"); }
+    );
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_update")!;
+    const res = await tool.handler({ id: 999, title: "X" });
+    expect(res.isError).toBe(true);
+  });
+});
