@@ -240,6 +240,24 @@ export function createTasksTools(client: RunrunClient): ToolDefinition[] {
           return genericErrorResponse(e);
         }
       }
+    },
+    {
+      name: "tasks_get_description",
+      config: {
+        title: "Get Task Description",
+        description: "Get the full description (rich text) of a task. The main tasks_get endpoint does not include the description field — use this tool to fetch it separately.",
+        inputSchema: {
+          id: z.number().int().positive()
+        }
+      },
+      handler: async (input: { id: number }) => {
+        try {
+          const data = await client.get(`/tasks/${input.id}/description`);
+          return successResponse(data);
+        } catch (e) {
+          return genericErrorResponse(e);
+        }
+      }
     }
   ];
 }

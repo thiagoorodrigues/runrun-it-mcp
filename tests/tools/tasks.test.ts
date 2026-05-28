@@ -234,3 +234,22 @@ describe("tasks_comments_create", () => {
     expect(res.isError).toBe(true);
   });
 });
+
+describe("tasks_get_description", () => {
+  it("calls /tasks/:id/description", async () => {
+    const client = mockClient(async () => ({ id: 68959, description: "<p>hello</p>" }));
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_get_description")!;
+    const res = await tool.handler({ id: 68959 });
+    expect(client.get).toHaveBeenCalledWith("/tasks/68959/description");
+    expect(JSON.parse(res.content[0].text)).toMatchObject({ id: 68959, description: "<p>hello</p>" });
+  });
+
+  it("returns isError on API error", async () => {
+    const client = mockClient(async () => {
+      throw new RunrunApiError(404, "Not Found", "/tasks/999/description");
+    });
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_get_description")!;
+    const res = await tool.handler({ id: 999 });
+    expect(res.isError).toBe(true);
+  });
+});
