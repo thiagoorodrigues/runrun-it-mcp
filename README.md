@@ -2,7 +2,7 @@
 
 MCP server for [Runrun.it](https://runrun.it) — exposes the Runrun.it REST API as tools usable by Claude and other MCP clients.
 
-**Status:** v0.1 (read-only). Exposes 14 tools for tasks, projects, clients, users, teams, boards, and pipelines. Write operations (create/update tasks, log time, etc.) will follow in future versions.
+**Status:** v0.2. Exposes 18 tools for tasks, projects, clients, users, teams, boards, and pipelines. Includes read and write operations on tasks (create, update, status change, comment).
 
 ## Installation
 
@@ -68,6 +68,10 @@ In Runrun.it: **Settings → Integrations → App** to get the App-Key, and your
 | `tasks_get` | Get a task by ID |
 | `tasks_comments_list` | List comments on a task |
 | `tasks_time_entries_list` | List time entries logged to a task |
+| `tasks_create` | Create a new task |
+| `tasks_update` | Update fields of an existing task |
+| `tasks_update_status` | Move a task to a different board stage |
+| `tasks_comments_create` | Add a comment to a task |
 
 All list tools support `page` (default 1) and `limit` (default 50, max 100).
 
