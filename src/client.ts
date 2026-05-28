@@ -45,6 +45,16 @@ export class RunrunClient {
     return this.parseResponse<T>(res, path);
   }
 
+  async put<T = unknown>(path: string, body: BodyParams): Promise<T> {
+    const url = this.buildUrl(path, {});
+    const res = await fetch(url, {
+      method: "PUT",
+      headers: this.authHeaders(),
+      body: JSON.stringify(body)
+    });
+    return this.parseResponse<T>(res, path);
+  }
+
   private authHeaders() {
     return {
       "App-Key": this.config.appKey,

@@ -224,3 +224,47 @@ describe("RunrunClient.delete", () => {
     await expect(client.delete("/manual_work_periods/999")).rejects.toBeInstanceOf(RunrunApiError);
   });
 });
+
+describe("RunrunClient.put", () => {
+  beforeEach(() => {
+    global.fetch = vi.fn();
+  });
+
+  it("sends PUT with JSON body and auth headers", async () => {
+    (global.fetch as any).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ id: 1 })
+    });
+    const client = new RunrunClient(baseConfig);
+    await client.put("/tasks/1", { task: { custom_fields: { custom_67: "val" } } });
+    const [url, init] = (global.fetch as any).mock.calls[0];
+    expect(url).toBe("https://runrun.it/api/v1.0/tasks/1");
+    expect(init.method).toBe("PUT");
+    expect(init.headers["App-Key"]).toBe("app-key-xyz");
+    expect(init.headers["User-Token"]).toBe("user-token-abc");
+    expect(init.headers["Content-Type"]).toBe("application/json");
+    expect(JSON.parse(init.body)).toEqual({ task: { custom_fields: { custom_67: "val" } } });
+  });
+
+  it("returns parsed JSON on 2xx", async () => {
+    (global.fetch as any).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ id: 42 })
+    });
+    const client = new RunrunClient(baseConfig);
+    const data = await client.put("/tasks/1", {});
+    expect(data).toEqual({ id: 42 });
+  });
+
+  it("throws RunrunApiError on 4xx", async () => {
+    (global.fetch as any).mockResolvedValue({
+      ok: false,
+      status: 422,
+      text: async () => "Unprocessable Entity"
+    });
+    const client = new RunrunClient(baseConfig);
+    await expect(client.put("/tasks/1", {})).rejects.toBeInstanceOf(RunrunApiError);
+  });
+});
