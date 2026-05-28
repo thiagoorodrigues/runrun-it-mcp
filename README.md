@@ -2,7 +2,7 @@
 
 MCP server for [Runrun.it](https://runrun.it) — exposes the Runrun.it REST API as tools usable by Claude and other MCP clients.
 
-**Status:** v0.3. Exposes 26 tools for tasks, projects, clients, users, teams, boards, pipelines, and time tracking. Includes read/write for tasks and manual work periods, plus timer control.
+**Status:** v0.4. Exposes 30 tools for tasks, projects, clients, users, teams, boards, pipelines, custom fields, tags, and time tracking. Includes read/write for tasks and manual work periods, plus timer control.
 
 ## Prerequisites
 
@@ -124,6 +124,10 @@ In Runrun.it: **Configurações → Integrações → App** to get the `App-Key`
 | `manual_work_periods_create` | Log hours manually on a task |
 | `manual_work_periods_update` | Update a manual work period |
 | `manual_work_periods_delete` | Delete a manual work period |
+| `tasks_list_fields` | List custom fields available for a task |
+| `tasks_update_custom_fields` | Update custom fields on a task |
+| `tasks_update_tags` | Replace all tags on a task |
+| `tags_search` | Search existing tags by name |
 
 All list tools support `page` (default 1) and `limit` (default 50, max 100).
 
@@ -159,7 +163,7 @@ RUNRUNIT_APP_KEY=... RUNRUNIT_USER_TOKEN=... node dist/index.js
 - **v0.1** ✅ — read-only core
 - **v0.2** ✅ — write operations on tasks (create/update/comment/status change)
 - **v0.3** ✅ — time tracking (timer play/pause, manual work period CRUD)
-- **v0.4** — custom fields, tags, attachments
+- **v0.4** ✅ — custom fields, tags (attachments deferred)
 - **v0.5** — webhooks, reports
 
 ## License
