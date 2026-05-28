@@ -58,6 +58,9 @@ export class RunrunClient {
       const body = await res.text();
       throw new RunrunApiError(res.status, body, path);
     }
+    if (res.status === 204) {
+      return {} as T;
+    }
     return (await res.json()) as T;
   }
 
