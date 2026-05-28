@@ -1,13 +1,17 @@
 {
   "name": "runrun-it-mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "MCP server for Runrun.it API (read-only, v0.1).",
   "license": "MIT",
   "type": "module",
   "bin": {
     "runrun-it-mcp": "dist/index.js"
   },
-  "files": ["dist", "README.md", "LICENSE"],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc",
     "postbuild": "chmod +x dist/index.js",
