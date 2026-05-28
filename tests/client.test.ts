@@ -181,3 +181,46 @@ describe("RunrunClient.patch", () => {
     await expect(client.patch("/tasks/999", {})).rejects.toBeInstanceOf(RunrunApiError);
   });
 });
+
+describe("RunrunClient.delete", () => {
+  beforeEach(() => {
+    global.fetch = vi.fn();
+  });
+
+  it("sends DELETE with auth headers and no body", async () => {
+    (global.fetch as any).mockResolvedValue({
+      ok: true,
+      status: 204,
+      json: async () => ({})
+    });
+    const client = new RunrunClient(baseConfig);
+    await client.delete("/manual_work_periods/5");
+    const [url, init] = (global.fetch as any).mock.calls[0];
+    expect(url).toBe("https://runrun.it/api/v1.0/manual_work_periods/5");
+    expect(init.method).toBe("DELETE");
+    expect(init.headers["App-Key"]).toBe("app-key-xyz");
+    expect(init.headers["User-Token"]).toBe("user-token-abc");
+    expect(init.body).toBeUndefined();
+  });
+
+  it("returns parsed JSON on 2xx", async () => {
+    (global.fetch as any).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ id: 5 })
+    });
+    const client = new RunrunClient(baseConfig);
+    const data = await client.delete("/manual_work_periods/5");
+    expect(data).toEqual({ id: 5 });
+  });
+
+  it("throws RunrunApiError on 4xx", async () => {
+    (global.fetch as any).mockResolvedValue({
+      ok: false,
+      status: 404,
+      text: async () => "Not Found"
+    });
+    const client = new RunrunClient(baseConfig);
+    await expect(client.delete("/manual_work_periods/999")).rejects.toBeInstanceOf(RunrunApiError);
+  });
+});

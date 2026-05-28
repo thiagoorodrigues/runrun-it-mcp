@@ -36,6 +36,15 @@ export class RunrunClient {
     return this.parseResponse<T>(res, path);
   }
 
+  async delete<T = unknown>(path: string): Promise<T> {
+    const url = this.buildUrl(path, {});
+    const res = await fetch(url, {
+      method: "DELETE",
+      headers: this.authHeaders()
+    });
+    return this.parseResponse<T>(res, path);
+  }
+
   private authHeaders() {
     return {
       "App-Key": this.config.appKey,
