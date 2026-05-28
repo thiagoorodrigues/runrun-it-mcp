@@ -219,6 +219,27 @@ export function createTasksTools(client: RunrunClient): ToolDefinition[] {
           return genericErrorResponse(e);
         }
       }
+    },
+    {
+      name: "tasks_comments_create",
+      config: {
+        title: "Create Task Comment",
+        description: "Add a comment to a task.",
+        inputSchema: {
+          task_id: z.number().int().positive(),
+          text: z.string().min(1)
+        }
+      },
+      handler: async (input: { task_id: number; text: string }) => {
+        try {
+          const data = await client.post(`/tasks/${input.task_id}/comments`, {
+            comment: { text: input.text }
+          });
+          return successResponse(data);
+        } catch (e) {
+          return genericErrorResponse(e);
+        }
+      }
     }
   ];
 }

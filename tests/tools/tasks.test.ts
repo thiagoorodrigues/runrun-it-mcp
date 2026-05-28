@@ -209,3 +209,28 @@ describe("tasks_update_status", () => {
     expect(res.isError).toBe(true);
   });
 });
+
+describe("tasks_comments_create", () => {
+  it("calls POST /tasks/:task_id/comments with text", async () => {
+    const client = mockClient(
+      async () => ({}),
+      async () => ({ id: 55, text: "Olá" })
+    );
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_comments_create")!;
+    const res = await tool.handler({ task_id: 10, text: "Olá" });
+    expect(client.post).toHaveBeenCalledWith("/tasks/10/comments", {
+      comment: { text: "Olá" }
+    });
+    expect(JSON.parse(res.content[0].text)).toMatchObject({ id: 55 });
+  });
+
+  it("returns isError on API error", async () => {
+    const client = mockClient(
+      async () => ({}),
+      async () => { throw new RunrunApiError(404, "Not Found", "/tasks/999/comments"); }
+    );
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_comments_create")!;
+    const res = await tool.handler({ task_id: 999, text: "x" });
+    expect(res.isError).toBe(true);
+  });
+});
