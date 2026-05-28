@@ -106,3 +106,78 @@ describe("RunrunClient.get", () => {
     expect((global.fetch as any).mock.calls[0][0]).toBe("https://runrun.it/api/v1.0/users/me");
   });
 });
+
+describe("RunrunClient.post", () => {
+  beforeEach(() => {
+    global.fetch = vi.fn();
+  });
+
+  it("sends POST with JSON body and auth headers", async () => {
+    (global.fetch as any).mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: async () => ({ id: 1 })
+    });
+    const client = new RunrunClient(baseConfig);
+    await client.post("/tasks", { task: { title: "Test" } });
+    const [url, init] = (global.fetch as any).mock.calls[0];
+    expect(url).toBe("https://runrun.it/api/v1.0/tasks");
+    expect(init.method).toBe("POST");
+    expect(init.headers["App-Key"]).toBe("app-key-xyz");
+    expect(init.headers["User-Token"]).toBe("user-token-abc");
+    expect(init.headers["Content-Type"]).toBe("application/json");
+    expect(JSON.parse(init.body)).toEqual({ task: { title: "Test" } });
+  });
+
+  it("returns parsed JSON on 2xx", async () => {
+    (global.fetch as any).mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: async () => ({ id: 99 })
+    });
+    const client = new RunrunClient(baseConfig);
+    const data = await client.post("/tasks", { task: { title: "x" } });
+    expect(data).toEqual({ id: 99 });
+  });
+
+  it("throws RunrunApiError on 4xx", async () => {
+    (global.fetch as any).mockResolvedValue({
+      ok: false,
+      status: 422,
+      text: async () => "Unprocessable Entity"
+    });
+    const client = new RunrunClient(baseConfig);
+    await expect(client.post("/tasks", {})).rejects.toBeInstanceOf(RunrunApiError);
+  });
+});
+
+describe("RunrunClient.patch", () => {
+  beforeEach(() => {
+    global.fetch = vi.fn();
+  });
+
+  it("sends PATCH with JSON body and auth headers", async () => {
+    (global.fetch as any).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ id: 5 })
+    });
+    const client = new RunrunClient(baseConfig);
+    await client.patch("/tasks/5", { task: { title: "Updated" } });
+    const [url, init] = (global.fetch as any).mock.calls[0];
+    expect(url).toBe("https://runrun.it/api/v1.0/tasks/5");
+    expect(init.method).toBe("PATCH");
+    expect(init.headers["App-Key"]).toBe("app-key-xyz");
+    expect(JSON.parse(init.body)).toEqual({ task: { title: "Updated" } });
+  });
+
+  it("throws RunrunApiError on 4xx", async () => {
+    (global.fetch as any).mockResolvedValue({
+      ok: false,
+      status: 404,
+      text: async () => "Not Found"
+    });
+    const client = new RunrunClient(baseConfig);
+    await expect(client.patch("/tasks/999", {})).rejects.toBeInstanceOf(RunrunApiError);
+  });
+});
