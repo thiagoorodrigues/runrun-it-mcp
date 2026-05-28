@@ -299,3 +299,82 @@ describe("tasks_pause", () => {
     expect(res.isError).toBe(true);
   });
 });
+
+describe("tasks_list_fields", () => {
+  it("calls /tasks/:id/fields", async () => {
+    const client = mockClient(async () => [{ id: "custom_67", name: "Responsáveis" }]);
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_list_fields")!;
+    const res = await tool.handler({ id: 68959 });
+    expect(client.get).toHaveBeenCalledWith("/tasks/68959/fields");
+    expect(JSON.parse(res.content[0].text)).toMatchObject([{ id: "custom_67" }]);
+  });
+
+  it("returns isError on API error", async () => {
+    const client = mockClient(async () => { throw new RunrunApiError(404, "Not Found", "/tasks/999/fields"); });
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_list_fields")!;
+    const res = await tool.handler({ id: 999 });
+    expect(res.isError).toBe(true);
+  });
+});
+
+describe("tasks_update_custom_fields", () => {
+  it("calls PUT /tasks/:id with custom_fields", async () => {
+    const client = mockClient(
+      async () => ({}),
+      async () => ({}),
+      async () => ({}),
+      async () => ({}),
+      async () => ({ id: 1 })
+    );
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_update_custom_fields")!;
+    const res = await tool.handler({ id: 1, custom_fields: { custom_67: "Carlos", custom_73: { id: "abc" } } });
+    expect(client.put).toHaveBeenCalledWith("/tasks/1", {
+      task: { custom_fields: { custom_67: "Carlos", custom_73: { id: "abc" } } }
+    });
+    expect(JSON.parse(res.content[0].text)).toMatchObject({ id: 1 });
+  });
+
+  it("returns isError on API error", async () => {
+    const client = mockClient(
+      async () => ({}),
+      async () => ({}),
+      async () => ({}),
+      async () => ({}),
+      async () => { throw new RunrunApiError(422, "Invalid", "/tasks/1"); }
+    );
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_update_custom_fields")!;
+    const res = await tool.handler({ id: 1, custom_fields: {} });
+    expect(res.isError).toBe(true);
+  });
+});
+
+describe("tasks_update_tags", () => {
+  it("calls PUT /tasks/:id with tags_data", async () => {
+    const client = mockClient(
+      async () => ({}),
+      async () => ({}),
+      async () => ({}),
+      async () => ({}),
+      async () => ({ id: 5 })
+    );
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_update_tags")!;
+    const res = await tool.handler({ id: 5, tags: [{ name: "bug", color: "#FF0000" }] });
+    expect(client.put).toHaveBeenCalledWith("/tasks/5", {
+      task: { tags_data: [{ name: "bug", color: "#FF0000" }] }
+    });
+    expect(JSON.parse(res.content[0].text)).toMatchObject({ id: 5 });
+  });
+
+  it("returns isError on API error", async () => {
+    const client = mockClient(
+      async () => ({}),
+      async () => ({}),
+      async () => ({}),
+      async () => ({}),
+      async () => { throw new RunrunApiError(404, "Not Found", "/tasks/999"); }
+    );
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_update_tags")!;
+    const res = await tool.handler({ id: 999, tags: [] });
+    expect(res.isError).toBe(true);
+  });
+});

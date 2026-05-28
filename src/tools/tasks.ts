@@ -294,6 +294,69 @@ export function createTasksTools(client: RunrunClient): ToolDefinition[] {
           return genericErrorResponse(e);
         }
       }
+    },
+    {
+      name: "tasks_list_fields",
+      config: {
+        title: "List Task Fields",
+        description: "List custom fields available for a task's board. Use this to discover field IDs (e.g. custom_67) before calling tasks_update_custom_fields.",
+        inputSchema: {
+          id: z.number().int().positive()
+        }
+      },
+      handler: async (input: { id: number }) => {
+        try {
+          const data = await client.get(`/tasks/${input.id}/fields`);
+          return successResponse(data);
+        } catch (e) {
+          return genericErrorResponse(e);
+        }
+      }
+    },
+    {
+      name: "tasks_update_custom_fields",
+      config: {
+        title: "Update Task Custom Fields",
+        description: "Update custom fields on a task. Use tasks_list_fields first to discover available field IDs. Pass a custom_fields object with field keys like custom_67, custom_73, etc.",
+        inputSchema: {
+          id: z.number().int().positive(),
+          custom_fields: z.record(z.unknown())
+        }
+      },
+      handler: async (input: { id: number; custom_fields: Record<string, unknown> }) => {
+        try {
+          const data = await client.put(`/tasks/${input.id}`, {
+            task: { custom_fields: input.custom_fields }
+          });
+          return successResponse(data);
+        } catch (e) {
+          return genericErrorResponse(e);
+        }
+      }
+    },
+    {
+      name: "tasks_update_tags",
+      config: {
+        title: "Update Task Tags",
+        description: "Replace all tags on a task. Use tags_search to find existing tags. WARNING: this replaces all existing tags — include current tags if you only want to add one.",
+        inputSchema: {
+          id: z.number().int().positive(),
+          tags: z.array(z.object({
+            name: z.string().min(1),
+            color: z.string().min(1)
+          }))
+        }
+      },
+      handler: async (input: { id: number; tags: Array<{ name: string; color: string }> }) => {
+        try {
+          const data = await client.put(`/tasks/${input.id}`, {
+            task: { tags_data: input.tags }
+          });
+          return successResponse(data);
+        } catch (e) {
+          return genericErrorResponse(e);
+        }
+      }
     }
   ];
 }
