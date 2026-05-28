@@ -198,6 +198,27 @@ export function createTasksTools(client: RunrunClient): ToolDefinition[] {
           return genericErrorResponse(e);
         }
       }
+    },
+    {
+      name: "tasks_update_status",
+      config: {
+        title: "Update Task Status",
+        description: "Move a task to a different board stage (status). Use boards_list then pipelines_list to find valid stage IDs.",
+        inputSchema: {
+          id: z.number().int().positive(),
+          current_board_stage_id: z.number().int().positive()
+        }
+      },
+      handler: async (input: { id: number; current_board_stage_id: number }) => {
+        try {
+          const data = await client.patch(`/tasks/${input.id}`, {
+            task: { current_board_stage_id: input.current_board_stage_id }
+          });
+          return successResponse(data);
+        } catch (e) {
+          return genericErrorResponse(e);
+        }
+      }
     }
   ];
 }
