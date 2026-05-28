@@ -80,6 +80,16 @@ Alternatively, add it directly to your `.vscode/mcp.json` in the project root.
 
 ---
 
+## Updating
+
+Because the server runs via `npx`, updates are automatic — `npx` always fetches the latest published version when it starts. No action needed.
+
+To pin a specific version, change `-y runrun-it-mcp` to `-y runrun-it-mcp@x.y.z` in your config.
+
+To check the latest published version: `npm show runrun-it-mcp version`
+
+---
+
 ## Getting your credentials
 
 In Runrun.it: **Configurações → Integrações → App** to get the `App-Key`, and your personal `User-Token` from your profile page.
