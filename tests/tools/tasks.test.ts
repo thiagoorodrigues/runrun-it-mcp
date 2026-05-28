@@ -87,3 +87,58 @@ describe("tasks_time_entries_list", () => {
     });
   });
 });
+
+describe("tasks_create", () => {
+  it("calls POST /tasks with required fields", async () => {
+    const client = mockClient(
+      async () => ({}),
+      async () => ({ id: 1, title: "Nova tarefa" })
+    );
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_create")!;
+    const res = await tool.handler({ title: "Nova tarefa", project_id: 10 });
+    expect(client.post).toHaveBeenCalledWith("/tasks", {
+      task: { title: "Nova tarefa", project_id: 10 }
+    });
+    expect(JSON.parse(res.content[0].text)).toMatchObject({ id: 1 });
+  });
+
+  it("includes all optional fields when provided", async () => {
+    const client = mockClient(
+      async () => ({}),
+      async () => ({ id: 2 })
+    );
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_create")!;
+    await tool.handler({
+      title: "T",
+      project_id: 1,
+      responsible_id: 5,
+      board_id: 3,
+      type_id: 2,
+      due_date: "2026-06-01",
+      description: "desc",
+      estimated_work_hours: 4
+    });
+    expect(client.post).toHaveBeenCalledWith("/tasks", {
+      task: {
+        title: "T",
+        project_id: 1,
+        responsible_id: 5,
+        board_id: 3,
+        type_id: 2,
+        due_date: "2026-06-01",
+        description: "desc",
+        estimated_work_hours: 4
+      }
+    });
+  });
+
+  it("returns isError on API error", async () => {
+    const client = mockClient(
+      async () => ({}),
+      async () => { throw new RunrunApiError(422, "Unprocessable", "/tasks"); }
+    );
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_create")!;
+    const res = await tool.handler({ title: "T", project_id: 1 });
+    expect(res.isError).toBe(true);
+  });
+});
