@@ -76,11 +76,11 @@ describe("tasks_comments_list", () => {
 });
 
 describe("tasks_time_entries_list", () => {
-  it("calls /time_entries with task_id filter and pagination", async () => {
+  it("calls /manual_work_periods with task_id filter and pagination", async () => {
     const client = mockClient(async () => []);
     const tool = createTasksTools(client).find((t) => t.name === "tasks_time_entries_list")!;
     await tool.handler({ task_id: 200 });
-    expect(client.get).toHaveBeenCalledWith("/time_entries", {
+    expect(client.get).toHaveBeenCalledWith("/manual_work_periods", {
       task_id: 200,
       page: 1,
       limit: 50
@@ -250,6 +250,52 @@ describe("tasks_get_description", () => {
     });
     const tool = createTasksTools(client).find((t) => t.name === "tasks_get_description")!;
     const res = await tool.handler({ id: 999 });
+    expect(res.isError).toBe(true);
+  });
+});
+
+describe("tasks_play", () => {
+  it("calls POST /tasks/:id/play", async () => {
+    const client = mockClient(
+      async () => ({}),
+      async () => ({ id: 10, is_working_on: true })
+    );
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_play")!;
+    const res = await tool.handler({ id: 10 });
+    expect(client.post).toHaveBeenCalledWith("/tasks/10/play", {});
+    expect(JSON.parse(res.content[0].text)).toMatchObject({ id: 10 });
+  });
+
+  it("returns isError on API error", async () => {
+    const client = mockClient(
+      async () => ({}),
+      async () => { throw new RunrunApiError(422, "Already working", "/tasks/10/play"); }
+    );
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_play")!;
+    const res = await tool.handler({ id: 10 });
+    expect(res.isError).toBe(true);
+  });
+});
+
+describe("tasks_pause", () => {
+  it("calls POST /tasks/:id/pause", async () => {
+    const client = mockClient(
+      async () => ({}),
+      async () => ({ id: 10, is_working_on: false })
+    );
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_pause")!;
+    const res = await tool.handler({ id: 10 });
+    expect(client.post).toHaveBeenCalledWith("/tasks/10/pause", {});
+    expect(JSON.parse(res.content[0].text)).toMatchObject({ id: 10 });
+  });
+
+  it("returns isError on API error", async () => {
+    const client = mockClient(
+      async () => ({}),
+      async () => { throw new RunrunApiError(422, "Not working", "/tasks/10/pause"); }
+    );
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_pause")!;
+    const res = await tool.handler({ id: 10 });
     expect(res.isError).toBe(true);
   });
 });

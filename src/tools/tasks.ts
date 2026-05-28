@@ -90,7 +90,7 @@ export function createTasksTools(client: RunrunClient): ToolDefinition[] {
       name: "tasks_time_entries_list",
       config: {
         title: "List Task Time Entries",
-        description: "List time entries (logged hours) for a task.",
+        description: "List manual work periods (logged hours) for a task.",
         inputSchema: {
           task_id: z.number().int().positive(),
           ...paginationFields
@@ -99,7 +99,7 @@ export function createTasksTools(client: RunrunClient): ToolDefinition[] {
       handler: async (input: { task_id: number; page?: number; limit?: number }) => {
         try {
           const { page, limit } = applyPaginationDefaults(input);
-          const data = await client.get("/time_entries", {
+          const data = await client.get("/manual_work_periods", {
             task_id: input.task_id,
             page,
             limit
@@ -253,6 +253,42 @@ export function createTasksTools(client: RunrunClient): ToolDefinition[] {
       handler: async (input: { id: number }) => {
         try {
           const data = await client.get(`/tasks/${input.id}/description`);
+          return successResponse(data);
+        } catch (e) {
+          return genericErrorResponse(e);
+        }
+      }
+    },
+    {
+      name: "tasks_play",
+      config: {
+        title: "Play Task",
+        description: "Start the timer on a task for the authenticated user. If the user is currently working on another task, that task will be paused automatically.",
+        inputSchema: {
+          id: z.number().int().positive()
+        }
+      },
+      handler: async (input: { id: number }) => {
+        try {
+          const data = await client.post(`/tasks/${input.id}/play`, {});
+          return successResponse(data);
+        } catch (e) {
+          return genericErrorResponse(e);
+        }
+      }
+    },
+    {
+      name: "tasks_pause",
+      config: {
+        title: "Pause Task",
+        description: "Pause the timer on a task for the authenticated user.",
+        inputSchema: {
+          id: z.number().int().positive()
+        }
+      },
+      handler: async (input: { id: number }) => {
+        try {
+          const data = await client.post(`/tasks/${input.id}/pause`, {});
           return successResponse(data);
         } catch (e) {
           return genericErrorResponse(e);
