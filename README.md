@@ -4,13 +4,36 @@ MCP server for [Runrun.it](https://runrun.it) — exposes the Runrun.it REST API
 
 **Status:** v0.2. Exposes 18 tools for tasks, projects, clients, users, teams, boards, and pipelines. Includes read and write operations on tasks (create, update, status change, comment).
 
+## Prerequisites
+
+- **Node.js 18+** — [nodejs.org](https://nodejs.org)
+- Runrun.it credentials (see [Getting your credentials](#getting-your-credentials))
+
 ## Installation
 
-You don't install it directly — your MCP client launches it via `npx`. Just add it to your client's config.
+You don't install it directly — your MCP client launches it via `npx`. Choose your client below.
+
+---
+
+### Claude Code (CLI)
+
+Run once in the terminal to register globally:
+
+```bash
+claude mcp add --scope user runrun-it npx -- -y runrun-it-mcp \
+  -e RUNRUNIT_APP_KEY=your-app-key \
+  -e RUNRUNIT_USER_TOKEN=your-user-token
+```
+
+Restart Claude Code. Run `/mcp` to confirm `runrun-it` appears in the list.
+
+---
 
 ### Claude Desktop
 
-Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
+**macOS:** edit `~/Library/Application Support/Claude/claude_desktop_config.json`
+
+**Windows:** edit `%APPDATA%\Claude\claude_desktop_config.json`
 
 ```json
 {
@@ -27,9 +50,14 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) o
 }
 ```
 
-### Claude Code
+Restart Claude Desktop.
 
-Add to `.mcp.json` in your project root:
+---
+
+### VS Code (Claude extension)
+
+1. Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) and run **Claude: Open MCP Settings**
+2. Add the following to the JSON that opens:
 
 ```json
 {
@@ -45,10 +73,16 @@ Add to `.mcp.json` in your project root:
   }
 }
 ```
+
+3. Save the file and reload the window (`Ctrl+Shift+P` → **Developer: Reload Window**).
+
+Alternatively, add it directly to your `.vscode/mcp.json` in the project root.
+
+---
 
 ## Getting your credentials
 
-In Runrun.it: **Settings → Integrations → App** to get the App-Key, and your personal User-Token from your profile.
+In Runrun.it: **Configurações → Integrações → App** to get the `App-Key`, and your personal `User-Token` from your profile page.
 
 ## Tools
 
@@ -104,8 +138,8 @@ RUNRUNIT_APP_KEY=... RUNRUNIT_USER_TOKEN=... node dist/index.js
 
 ## Roadmap
 
-- **v0.1** (this release) — read-only core
-- **v0.2** — write operations on tasks (create/update/comment/status change)
+- **v0.1** ✅ — read-only core
+- **v0.2** ✅ — write operations on tasks (create/update/comment/status change)
 - **v0.3** — time tracking (timer, manual entries)
 - **v0.4** — custom fields, tags, attachments
 - **v0.5** — webhooks, reports
