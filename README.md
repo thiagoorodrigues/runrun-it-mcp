@@ -131,6 +131,72 @@ In Runrun.it: **Configurações → Integrações → App** to get the `App-Key`
 
 All list tools support `page` (default 1) and `limit` (default 50, max 100).
 
+## Examples
+
+The examples below show natural-language prompts and the responses Claude gives when using this MCP server.
+
+### Managing tasks
+
+**User:** What are the open tasks in the "Website Redesign" project?
+
+**Claude:** Here are the open tasks in Website Redesign:
+- **#1234** Create homepage layout — *In progress* · Ana Silva
+- **#1235** Review landing page copy — *To do* · João Lima
+- **#1236** Integrate contact form — *To do* · unassigned
+- **#1237** Responsiveness testing — *Blocked* · Pedro Costa
+
+---
+
+**User:** Create a task "Write release notes for v0.4" in the Backend project, assign it to me, due next Friday.
+
+**Claude:** Done! Task **#1301 Write release notes for v0.4** created in Backend, assigned to you, due 2026-06-06.
+
+---
+
+**User:** Move task #1234 to "Done".
+
+**Claude:** Task **#1234 Create homepage layout** has been moved to **Done**.
+
+---
+
+**User:** Add a comment to task #1235 saying the copy was approved by the client.
+
+**Claude:** Comment added to **#1235 Review landing page copy**: "Copy approved by the client."
+
+---
+
+### Time tracking
+
+**User:** Start the timer on task #1236.
+
+**Claude:** Timer started on **#1236 Integrate contact form**. The clock is running.
+
+---
+
+**User:** Pause the timer.
+
+**Claude:** Timer paused on **#1236 Integrate contact form**. You worked for **1h 23m** in this session.
+
+---
+
+**User:** Log 2 hours on task #1235 for yesterday.
+
+**Claude:** Logged **2h** on **#1235 Review landing page copy** for 2026-05-29.
+
+---
+
+### Custom fields and tags
+
+**User:** Add the tags "frontend" and "urgent" to task #1237.
+
+**Claude:** Tags updated on **#1237 Responsiveness testing**: **frontend**, **urgent**.
+
+---
+
+**User:** Set the "Complexity" field on task #1234 to "High".
+
+**Claude:** Custom field **Complexity** set to **High** on **#1234 Create homepage layout**.
+
 ## Environment variables
 
 | Variable | Required | Default | Description |
