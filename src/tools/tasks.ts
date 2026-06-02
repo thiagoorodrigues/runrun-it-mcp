@@ -203,7 +203,7 @@ export function createTasksTools(client: RunrunClient): ToolDefinition[] {
       name: "tasks_update_status",
       config: {
         title: "Update Task Status",
-        description: "Move a task to a different board stage (status). Use boards_list then pipelines_list to find valid stage IDs.",
+        description: "Move a task to a different board stage (column). Use boards_list to get a board_id, then pipelines_list with that board_id to get valid current_board_stage_id values.",
         inputSchema: {
           id: z.number().int().positive(),
           current_board_stage_id: z.number().int().positive()
