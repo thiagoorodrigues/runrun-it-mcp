@@ -184,16 +184,15 @@ describe("tasks_update", () => {
 });
 
 describe("tasks_update_status", () => {
-  it("calls PATCH /tasks/:id with current_board_stage_id", async () => {
+  it("calls POST /tasks/:id/change_status with task_status_id", async () => {
     const client = mockClient(
       async () => ({}),
-      async () => ({}),
-      async () => ({ id: 10, current_board_stage_id: 42 })
+      async () => ({ id: 10, board_stage_id: 42 })
     );
     const tool = createTasksTools(client).find((t) => t.name === "tasks_update_status")!;
-    const res = await tool.handler({ id: 10, current_board_stage_id: 42 });
-    expect(client.patch).toHaveBeenCalledWith("/tasks/10", {
-      task: { current_board_stage_id: 42 }
+    const res = await tool.handler({ id: 10, board_stage_id: 42 });
+    expect(client.post).toHaveBeenCalledWith("/tasks/10/change_status", {
+      task_status_id: 42
     });
     expect(JSON.parse(res.content[0].text)).toMatchObject({ id: 10 });
   });
@@ -201,11 +200,10 @@ describe("tasks_update_status", () => {
   it("returns isError on API error", async () => {
     const client = mockClient(
       async () => ({}),
-      async () => ({}),
-      async () => { throw new RunrunApiError(404, "Not Found", "/tasks/0"); }
+      async () => { throw new RunrunApiError(404, "Not Found", "/tasks/0/change_status"); }
     );
     const tool = createTasksTools(client).find((t) => t.name === "tasks_update_status")!;
-    const res = await tool.handler({ id: 0, current_board_stage_id: 1 });
+    const res = await tool.handler({ id: 0, board_stage_id: 1 });
     expect(res.isError).toBe(true);
   });
 });

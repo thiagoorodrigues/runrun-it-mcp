@@ -203,16 +203,16 @@ export function createTasksTools(client: RunrunClient): ToolDefinition[] {
       name: "tasks_update_status",
       config: {
         title: "Update Task Status",
-        description: "Move a task to a different board stage (column). Use boards_list to get a board_id, then pipelines_list with that board_id to get valid current_board_stage_id values.",
+        description: "Move a task to a different board stage (column). Use boards_list to get a board_id, then pipelines_list with that board_id to get valid board_stage_id values.",
         inputSchema: {
           id: z.number().int().positive(),
-          current_board_stage_id: z.number().int().positive()
+          board_stage_id: z.number().int().positive()
         }
       },
-      handler: async (input: { id: number; current_board_stage_id: number }) => {
+      handler: async (input: { id: number; board_stage_id: number }) => {
         try {
-          const data = await client.patch(`/tasks/${input.id}`, {
-            task: { current_board_stage_id: input.current_board_stage_id }
+          const data = await client.post(`/tasks/${input.id}/change_status`, {
+            task_status_id: input.board_stage_id
           });
           return successResponse(data);
         } catch (e) {
