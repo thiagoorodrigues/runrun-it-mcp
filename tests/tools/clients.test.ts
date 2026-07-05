@@ -8,7 +8,22 @@ describe("clients_list", () => {
     const client = mockClient(async () => []);
     const tool = createClientsTools(client).find((t) => t.name === "clients_list")!;
     await tool.handler({});
-    expect(client.get).toHaveBeenCalledWith("/clients", { page: 1, limit: 50 });
+    expect(client.get).toHaveBeenCalledWith("/clients", {
+      page: 1,
+      limit: 50,
+      search_term: undefined
+    });
+  });
+
+  it("forwards search_term filter", async () => {
+    const client = mockClient(async () => []);
+    const tool = createClientsTools(client).find((t) => t.name === "clients_list")!;
+    await tool.handler({ search_term: "Ocean" });
+    expect(client.get).toHaveBeenCalledWith("/clients", {
+      page: 1,
+      limit: 50,
+      search_term: "Ocean"
+    });
   });
 
   it("returns isError on API error", async () => {

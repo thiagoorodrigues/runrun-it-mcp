@@ -101,12 +101,12 @@ In Runrun.it: **Configurações → Integrações → App** to get the `App-Key`
 | `users_me` | Get the user behind the current token |
 | `users_list` | List users |
 | `users_get` | Get a user by ID |
-| `clients_list` | List clients |
+| `clients_list` | List clients (search by name) |
 | `clients_get` | Get a client by ID |
 | `teams_list` | List teams |
 | `boards_list` | List boards |
 | `pipelines_list` | List pipelines |
-| `projects_list` | List projects (filter by client, closed status) |
+| `projects_list` | List projects (filter by client, closed status; search by name) |
 | `projects_get` | Get a project by ID |
 | `tasks_list` | List tasks (filter by board, project, client, responsible, type, closed status) |
 | `tasks_get` | Get a task by ID |

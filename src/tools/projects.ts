@@ -10,11 +10,12 @@ export function createProjectsTools(client: RunrunClient): ToolDefinition[] {
       name: "projects_list",
       config: {
         title: "List Projects",
-        description: "List projects. Filterable by client and closed status.",
+        description: "List projects. Filterable by client and closed status, and searchable by name via search_term (partial match).",
         inputSchema: {
           ...paginationFields,
           client_id: z.number().int().positive().optional(),
-          is_closed: z.boolean().optional()
+          is_closed: z.boolean().optional(),
+          search_term: z.string().min(1).optional()
         }
       },
       handler: async (input: {
@@ -22,6 +23,7 @@ export function createProjectsTools(client: RunrunClient): ToolDefinition[] {
         limit?: number;
         client_id?: number;
         is_closed?: boolean;
+        search_term?: string;
       }) => {
         try {
           const { page, limit } = applyPaginationDefaults(input);
@@ -29,7 +31,8 @@ export function createProjectsTools(client: RunrunClient): ToolDefinition[] {
             page,
             limit,
             client_id: input.client_id,
-            is_closed: input.is_closed
+            is_closed: input.is_closed,
+            search_term: input.search_term
           });
           return successResponse(data);
         } catch (e) {

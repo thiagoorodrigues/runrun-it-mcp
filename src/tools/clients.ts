@@ -10,13 +10,24 @@ export function createClientsTools(client: RunrunClient): ToolDefinition[] {
       name: "clients_list",
       config: {
         title: "List Clients",
-        description: "List clients. Supports pagination.",
-        inputSchema: { ...paginationFields }
+        description: "List clients. Supports pagination and search by name via search_term (partial match).",
+        inputSchema: {
+          ...paginationFields,
+          search_term: z.string().min(1).optional()
+        }
       },
-      handler: async (input: { page?: number; limit?: number }) => {
+      handler: async (input: {
+        page?: number;
+        limit?: number;
+        search_term?: string;
+      }) => {
         try {
-          const params = applyPaginationDefaults(input);
-          const data = await client.get("/clients", params);
+          const { page, limit } = applyPaginationDefaults(input);
+          const data = await client.get("/clients", {
+            page,
+            limit,
+            search_term: input.search_term
+          });
           return successResponse(data);
         } catch (e) {
           return genericErrorResponse(e);

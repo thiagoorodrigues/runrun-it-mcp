@@ -11,7 +11,8 @@ describe("projects_list", () => {
       page: 1,
       limit: 50,
       client_id: undefined,
-      is_closed: undefined
+      is_closed: undefined,
+      search_term: undefined
     });
   });
 
@@ -23,7 +24,21 @@ describe("projects_list", () => {
       page: 1,
       limit: 50,
       client_id: 12,
-      is_closed: false
+      is_closed: false,
+      search_term: undefined
+    });
+  });
+
+  it("forwards search_term filter", async () => {
+    const client = mockClient(async () => []);
+    const tool = createProjectsTools(client).find((t) => t.name === "projects_list")!;
+    await tool.handler({ search_term: "Genesis" });
+    expect(client.get).toHaveBeenCalledWith("/projects", {
+      page: 1,
+      limit: 50,
+      client_id: undefined,
+      is_closed: undefined,
+      search_term: "Genesis"
     });
   });
 });
