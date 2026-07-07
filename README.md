@@ -113,7 +113,7 @@ In Runrun.it: **Configurações → Integrações → App** to get the `App-Key`
 | `tasks_get` | Get a task by ID |
 | `tasks_comments_list` | List comments on a task |
 | `tasks_time_entries_list` | List manual work periods for a task |
-| `tasks_create` | Create a new task (requires title, project_id, responsible_id, type_id) |
+| `tasks_create` | Create a new task (requires title, project_id, type_id) |
 | `tasks_update` | Update fields of an existing task |
 | `tasks_update_status` | Move a task to a different board stage |
 | `tasks_comments_create` | Add a comment to a task |

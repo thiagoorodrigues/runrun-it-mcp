@@ -98,11 +98,10 @@ describe("tasks_create", () => {
     const res = await tool.handler({
       title: "Nova tarefa",
       project_id: 10,
-      responsible_id: "hugo-goncalves",
       type_id: 3
     });
     expect(client.post).toHaveBeenCalledWith("/tasks", {
-      task: { title: "Nova tarefa", project_id: 10, responsible_id: "hugo-goncalves", type_id: 3 }
+      task: { title: "Nova tarefa", project_id: 10, type_id: 3 }
     });
     expect(JSON.parse(res.content[0].text)).toMatchObject({ id: 1 });
   });
@@ -143,7 +142,7 @@ describe("tasks_create", () => {
       async () => { throw new RunrunApiError(422, "Unprocessable", "/tasks"); }
     );
     const tool = createTasksTools(client).find((t) => t.name === "tasks_create")!;
-    const res = await tool.handler({ title: "T", project_id: 1, responsible_id: "hugo-goncalves", type_id: 2 });
+    const res = await tool.handler({ title: "T", project_id: 1, type_id: 2 });
     expect(res.isError).toBe(true);
   });
 });

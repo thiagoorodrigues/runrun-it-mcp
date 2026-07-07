@@ -114,12 +114,12 @@ export function createTasksTools(client: RunrunClient): ToolDefinition[] {
       name: "tasks_create",
       config: {
         title: "Create Task",
-        description: "Create a new task. Requires title, project_id, responsible_id and type_id. responsible_id is the user's string id/slug from users_list (e.g. \"john-doe\"); type_id comes from task_types_list. All other fields are optional.",
+        description: "Create a new task. Requires title, project_id and type_id (type_id comes from task_types_list). Optionally set responsible_id, the user's string id/slug from users_list (e.g. \"john-doe\"). All other fields are optional.",
         inputSchema: {
           title: z.string().min(1),
           project_id: z.number().int().positive(),
-          responsible_id: z.string().min(1),
           type_id: z.number().int().positive(),
+          responsible_id: z.string().min(1).optional(),
           board_id: z.number().int().positive().optional(),
           due_date: z.string().optional(),
           description: z.string().optional(),
@@ -129,8 +129,8 @@ export function createTasksTools(client: RunrunClient): ToolDefinition[] {
       handler: async (input: {
         title: string;
         project_id: number;
-        responsible_id: string;
         type_id: number;
+        responsible_id?: string;
         board_id?: number;
         due_date?: string;
         description?: string;
@@ -140,9 +140,9 @@ export function createTasksTools(client: RunrunClient): ToolDefinition[] {
           const task: Record<string, unknown> = {
             title: input.title,
             project_id: input.project_id,
-            responsible_id: input.responsible_id,
             type_id: input.type_id
           };
+          if (input.responsible_id !== undefined) task.responsible_id = input.responsible_id;
           if (input.board_id !== undefined) task.board_id = input.board_id;
           if (input.due_date !== undefined) task.due_date = input.due_date;
           if (input.description !== undefined) task.description = input.description;
