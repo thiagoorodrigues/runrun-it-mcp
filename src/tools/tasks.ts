@@ -114,13 +114,13 @@ export function createTasksTools(client: RunrunClient): ToolDefinition[] {
       name: "tasks_create",
       config: {
         title: "Create Task",
-        description: "Create a new task. Requires title and project_id. All other fields are optional.",
+        description: "Create a new task. Requires title, project_id, responsible_id and type_id (use task_types_list to find type ids). All other fields are optional.",
         inputSchema: {
           title: z.string().min(1),
           project_id: z.number().int().positive(),
-          responsible_id: z.number().int().positive().optional(),
+          responsible_id: z.number().int().positive(),
+          type_id: z.number().int().positive(),
           board_id: z.number().int().positive().optional(),
-          type_id: z.number().int().positive().optional(),
           due_date: z.string().optional(),
           description: z.string().optional(),
           estimated_work_hours: z.number().positive().optional()
@@ -129,9 +129,9 @@ export function createTasksTools(client: RunrunClient): ToolDefinition[] {
       handler: async (input: {
         title: string;
         project_id: number;
-        responsible_id?: number;
+        responsible_id: number;
+        type_id: number;
         board_id?: number;
-        type_id?: number;
         due_date?: string;
         description?: string;
         estimated_work_hours?: number;
@@ -139,11 +139,11 @@ export function createTasksTools(client: RunrunClient): ToolDefinition[] {
         try {
           const task: Record<string, unknown> = {
             title: input.title,
-            project_id: input.project_id
+            project_id: input.project_id,
+            responsible_id: input.responsible_id,
+            type_id: input.type_id
           };
-          if (input.responsible_id !== undefined) task.responsible_id = input.responsible_id;
           if (input.board_id !== undefined) task.board_id = input.board_id;
-          if (input.type_id !== undefined) task.type_id = input.type_id;
           if (input.due_date !== undefined) task.due_date = input.due_date;
           if (input.description !== undefined) task.description = input.description;
           if (input.estimated_work_hours !== undefined) task.estimated_work_hours = input.estimated_work_hours;
