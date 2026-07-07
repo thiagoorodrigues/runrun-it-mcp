@@ -27,7 +27,7 @@ describe("tasks_list", () => {
       board_id: 1,
       project_id: 2,
       client_id: 3,
-      responsible_id: 4,
+      responsible_id: "hugo-goncalves",
       type_id: 5,
       is_closed: false,
       page: 2,
@@ -39,7 +39,7 @@ describe("tasks_list", () => {
       board_id: 1,
       project_id: 2,
       client_id: 3,
-      responsible_id: 4,
+      responsible_id: "hugo-goncalves",
       type_id: 5,
       is_closed: false
     });
@@ -98,11 +98,11 @@ describe("tasks_create", () => {
     const res = await tool.handler({
       title: "Nova tarefa",
       project_id: 10,
-      responsible_id: 7,
+      responsible_id: "hugo-goncalves",
       type_id: 3
     });
     expect(client.post).toHaveBeenCalledWith("/tasks", {
-      task: { title: "Nova tarefa", project_id: 10, responsible_id: 7, type_id: 3 }
+      task: { title: "Nova tarefa", project_id: 10, responsible_id: "hugo-goncalves", type_id: 3 }
     });
     expect(JSON.parse(res.content[0].text)).toMatchObject({ id: 1 });
   });
@@ -116,7 +116,7 @@ describe("tasks_create", () => {
     await tool.handler({
       title: "T",
       project_id: 1,
-      responsible_id: 5,
+      responsible_id: "hugo-goncalves",
       board_id: 3,
       type_id: 2,
       due_date: "2026-06-01",
@@ -127,7 +127,7 @@ describe("tasks_create", () => {
       task: {
         title: "T",
         project_id: 1,
-        responsible_id: 5,
+        responsible_id: "hugo-goncalves",
         board_id: 3,
         type_id: 2,
         due_date: "2026-06-01",
@@ -143,7 +143,7 @@ describe("tasks_create", () => {
       async () => { throw new RunrunApiError(422, "Unprocessable", "/tasks"); }
     );
     const tool = createTasksTools(client).find((t) => t.name === "tasks_create")!;
-    const res = await tool.handler({ title: "T", project_id: 1, responsible_id: 5, type_id: 2 });
+    const res = await tool.handler({ title: "T", project_id: 1, responsible_id: "hugo-goncalves", type_id: 2 });
     expect(res.isError).toBe(true);
   });
 });
@@ -156,9 +156,9 @@ describe("tasks_update", () => {
       async () => ({ id: 7, title: "Updated" })
     );
     const tool = createTasksTools(client).find((t) => t.name === "tasks_update")!;
-    const res = await tool.handler({ id: 7, title: "Updated", responsible_id: 3 });
+    const res = await tool.handler({ id: 7, title: "Updated", responsible_id: "hugo-goncalves" });
     expect(client.patch).toHaveBeenCalledWith("/tasks/7", {
-      task: { title: "Updated", responsible_id: 3 }
+      task: { title: "Updated", responsible_id: "hugo-goncalves" }
     });
     expect(JSON.parse(res.content[0].text)).toMatchObject({ id: 7 });
   });

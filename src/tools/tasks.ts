@@ -17,7 +17,7 @@ export function createTasksTools(client: RunrunClient): ToolDefinition[] {
           board_id: z.number().int().positive().optional(),
           project_id: z.number().int().positive().optional(),
           client_id: z.number().int().positive().optional(),
-          responsible_id: z.number().int().positive().optional(),
+          responsible_id: z.string().min(1).optional(),
           type_id: z.number().int().positive().optional(),
           is_closed: z.boolean().optional()
         }
@@ -28,7 +28,7 @@ export function createTasksTools(client: RunrunClient): ToolDefinition[] {
         board_id?: number;
         project_id?: number;
         client_id?: number;
-        responsible_id?: number;
+        responsible_id?: string;
         type_id?: number;
         is_closed?: boolean;
       }) => {
@@ -114,11 +114,11 @@ export function createTasksTools(client: RunrunClient): ToolDefinition[] {
       name: "tasks_create",
       config: {
         title: "Create Task",
-        description: "Create a new task. Requires title, project_id, responsible_id and type_id (use task_types_list to find type ids). All other fields are optional.",
+        description: "Create a new task. Requires title, project_id, responsible_id and type_id. responsible_id is the user's string id/slug from users_list (e.g. \"john-doe\"); type_id comes from task_types_list. All other fields are optional.",
         inputSchema: {
           title: z.string().min(1),
           project_id: z.number().int().positive(),
-          responsible_id: z.number().int().positive(),
+          responsible_id: z.string().min(1),
           type_id: z.number().int().positive(),
           board_id: z.number().int().positive().optional(),
           due_date: z.string().optional(),
@@ -129,7 +129,7 @@ export function createTasksTools(client: RunrunClient): ToolDefinition[] {
       handler: async (input: {
         title: string;
         project_id: number;
-        responsible_id: number;
+        responsible_id: string;
         type_id: number;
         board_id?: number;
         due_date?: string;
@@ -163,7 +163,7 @@ export function createTasksTools(client: RunrunClient): ToolDefinition[] {
           id: z.number().int().positive(),
           title: z.string().min(1).optional(),
           project_id: z.number().int().positive().optional(),
-          responsible_id: z.number().int().positive().optional(),
+          responsible_id: z.string().min(1).optional(),
           board_id: z.number().int().positive().optional(),
           type_id: z.number().int().positive().optional(),
           due_date: z.string().optional(),
@@ -175,7 +175,7 @@ export function createTasksTools(client: RunrunClient): ToolDefinition[] {
         id: number;
         title?: string;
         project_id?: number;
-        responsible_id?: number;
+        responsible_id?: string;
         board_id?: number;
         type_id?: number;
         due_date?: string;
