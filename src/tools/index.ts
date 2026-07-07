@@ -10,6 +10,7 @@ import { createProjectsTools } from "./projects.js";
 import { createTasksTools } from "./tasks.js";
 import { createManualWorkPeriodsTools } from "./manual_work_periods.js";
 import { createTagsTools } from "./tags.js";
+import { createTaskTypesTools } from "./task_types.js";
 
 export function registerAllTools(server: McpServer, client: RunrunClient): void {
   registerTools(server, [
@@ -21,6 +22,7 @@ export function registerAllTools(server: McpServer, client: RunrunClient): void 
     ...createProjectsTools(client),
     ...createTasksTools(client),
     ...createManualWorkPeriodsTools(client),
-    ...createTagsTools(client)
+    ...createTagsTools(client),
+    ...createTaskTypesTools(client)
   ]);
 }
