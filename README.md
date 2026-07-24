@@ -2,7 +2,7 @@
 
 MCP server for [Runrun.it](https://runrun.it) — exposes the Runrun.it REST API as tools usable by Claude and other MCP clients.
 
-**Status:** v0.4. Exposes 32 tools for tasks, projects, clients, users, teams, boards, pipelines, custom fields, tags, and time tracking. Includes read/write for tasks and manual work periods, plus timer control.
+**Status:** v0.7. Exposes 33 tools for tasks, projects, clients, users, teams, boards, pipelines, custom fields, tags, and time tracking. Includes read/write for tasks and manual work periods, plus timer control.
 
 ## Prerequisites
 
