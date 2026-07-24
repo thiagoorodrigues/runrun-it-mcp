@@ -2,7 +2,7 @@
 
 MCP server for [Runrun.it](https://runrun.it) — exposes the Runrun.it REST API as tools usable by Claude and other MCP clients.
 
-**Status:** v0.4. Exposes 30 tools for tasks, projects, clients, users, teams, boards, pipelines, custom fields, tags, and time tracking. Includes read/write for tasks and manual work periods, plus timer control.
+**Status:** v0.4. Exposes 32 tools for tasks, projects, clients, users, teams, boards, pipelines, custom fields, tags, and time tracking. Includes read/write for tasks and manual work periods, plus timer control.
 
 ## Prerequisites
 
@@ -101,6 +101,7 @@ In Runrun.it: **Configurações → Integrações → App** to get the `App-Key`
 | `users_me` | Get the user behind the current token |
 | `users_list` | List users |
 | `users_get` | Get a user by ID |
+| `users_search` | Search users by name or email (lean output) |
 | `clients_list` | List clients (search by name) |
 | `clients_get` | Get a client by ID |
 | `teams_list` | List teams |
@@ -115,6 +116,7 @@ In Runrun.it: **Configurações → Integrações → App** to get the `App-Key`
 | `tasks_time_entries_list` | List manual work periods for a task |
 | `tasks_create` | Create a new task (requires title, project_id, type_id) |
 | `tasks_update` | Update fields of an existing task |
+| `tasks_assign` | Assign a task to a responsible user, or unassign it |
 | `tasks_update_status` | Move a task to a different board stage |
 | `tasks_comments_create` | Add a comment to a task |
 | `tasks_get_description` | Get the full description of a task (separate endpoint) |
