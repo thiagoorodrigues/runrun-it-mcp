@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { createTasksTools } from "../../src/tools/tasks.js";
 import { RunrunApiError } from "../../src/errors.js";
 import { mockClient } from "../helpers/mock-client.js";
@@ -377,6 +377,35 @@ describe("tasks_update_tags", () => {
     );
     const tool = createTasksTools(client).find((t) => t.name === "tasks_update_tags")!;
     const res = await tool.handler({ id: 999, tags: [] });
+    expect(res.isError).toBe(true);
+  });
+});
+
+describe("tasks_assign", () => {
+  it("PATCHes /tasks/:id assigning the responsible_id", async () => {
+    const patch = vi.fn(async () => ({ id: 55, responsible_id: "ana-silva" }));
+    const client = mockClient(async () => ({}), undefined, patch);
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_assign")!;
+    const res = await tool.handler({ id: 55, responsible_id: "ana-silva" });
+    expect(patch).toHaveBeenCalledWith("/tasks/55", { task: { responsible_id: "ana-silva" } });
+    expect(res.isError).toBeUndefined();
+  });
+
+  it("PATCHes with null responsible_id when omitted (unassign)", async () => {
+    const patch = vi.fn(async () => ({ id: 55, responsible_id: null }));
+    const client = mockClient(async () => ({}), undefined, patch);
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_assign")!;
+    await tool.handler({ id: 55 });
+    expect(patch).toHaveBeenCalledWith("/tasks/55", { task: { responsible_id: null } });
+  });
+
+  it("returns isError on API error", async () => {
+    const patch = vi.fn(async () => {
+      throw new RunrunApiError(422, "bad", "/tasks/55");
+    });
+    const client = mockClient(async () => ({}), undefined, patch);
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_assign")!;
+    const res = await tool.handler({ id: 55, responsible_id: "x" });
     expect(res.isError).toBe(true);
   });
 });

@@ -200,6 +200,28 @@ export function createTasksTools(client: RunrunClient): ToolDefinition[] {
       }
     },
     {
+      name: "tasks_assign",
+      config: {
+        title: "Assign Task",
+        description:
+          "Assign a task to a responsible user, or unassign it. Pass responsible_id (the user slug from users_search, e.g. \"ana-silva\") to allocate. Omit responsible_id to remove the current responsible (unassign).",
+        inputSchema: {
+          id: z.number().int().positive(),
+          responsible_id: z.string().min(1).optional()
+        }
+      },
+      handler: async (input: { id: number; responsible_id?: string }) => {
+        try {
+          const data = await client.patch(`/tasks/${input.id}`, {
+            task: { responsible_id: input.responsible_id ?? null }
+          });
+          return successResponse(data);
+        } catch (e) {
+          return genericErrorResponse(e);
+        }
+      }
+    },
+    {
       name: "tasks_update_status",
       config: {
         title: "Update Task Status",
