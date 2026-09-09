@@ -11,13 +11,15 @@ export function createTasksTools(client: RunrunClient): ToolDefinition[] {
       config: {
         title: "List Tasks",
         description:
-          "List tasks. Filterable by board, project, client, responsible user, task type, and closed status.",
+          "List tasks. Filterable by board, project, client, responsible user (assignee), requester (task creator), task type, and closed status.",
         inputSchema: {
           ...paginationFields,
           board_id: z.number().int().positive().optional(),
           project_id: z.number().int().positive().optional(),
           client_id: z.number().int().positive().optional(),
           responsible_id: z.string().min(1).optional(),
+          user_id: z.string().min(1).optional()
+            .describe("Filter by the user who created/requested the task (the requester), not the assignee. String id/slug from users_list, e.g. \"john-doe\". Use responsible_id for the assignee."),
           type_id: z.number().int().positive().optional(),
           is_closed: z.boolean().optional()
         }
@@ -29,6 +31,7 @@ export function createTasksTools(client: RunrunClient): ToolDefinition[] {
         project_id?: number;
         client_id?: number;
         responsible_id?: string;
+        user_id?: string;
         type_id?: number;
         is_closed?: boolean;
       }) => {
@@ -41,6 +44,7 @@ export function createTasksTools(client: RunrunClient): ToolDefinition[] {
             project_id: input.project_id,
             client_id: input.client_id,
             responsible_id: input.responsible_id,
+            user_id: input.user_id,
             type_id: input.type_id,
             is_closed: input.is_closed
           });

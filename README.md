@@ -109,7 +109,7 @@ In Runrun.it: **Configurações → Integrações → App** to get the `App-Key`
 | `pipelines_list` | List pipelines |
 | `projects_list` | List projects (filter by client, closed status; search by name) |
 | `projects_get` | Get a project by ID |
-| `tasks_list` | List tasks (filter by board, project, client, responsible, type, closed status) |
+| `tasks_list` | List tasks (filter by board, project, client, responsible/assignee, requester via `user_id`, type, closed status) |
 | `task_types_list` | List task types (discover the `type_id` values used by tasks) |
 | `tasks_get` | Get a task by ID |
 | `tasks_comments_list` | List comments on a task |

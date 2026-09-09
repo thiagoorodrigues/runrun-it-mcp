@@ -15,6 +15,7 @@ describe("tasks_list", () => {
       project_id: undefined,
       client_id: undefined,
       responsible_id: undefined,
+      user_id: undefined,
       type_id: undefined,
       is_closed: undefined
     });
@@ -28,6 +29,7 @@ describe("tasks_list", () => {
       project_id: 2,
       client_id: 3,
       responsible_id: "hugo-goncalves",
+      user_id: "thiago-rodrigues",
       type_id: 5,
       is_closed: false,
       page: 2,
@@ -40,6 +42,7 @@ describe("tasks_list", () => {
       project_id: 2,
       client_id: 3,
       responsible_id: "hugo-goncalves",
+      user_id: "thiago-rodrigues",
       type_id: 5,
       is_closed: false
     });
