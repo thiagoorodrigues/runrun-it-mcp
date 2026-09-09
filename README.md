@@ -2,7 +2,7 @@
 
 MCP server for [Runrun.it](https://runrun.it) — exposes the Runrun.it REST API as tools usable by Claude and other MCP clients.
 
-**Status:** v0.7. Exposes 33 tools for tasks, projects, clients, users, teams, boards, pipelines, custom fields, tags, and time tracking. Includes read/write for tasks and manual work periods, plus timer control.
+**Status:** v0.8. Exposes 33 tools for tasks, projects, clients, users, teams, boards, pipelines, task types, custom fields, tags, and time tracking. Includes read/write for tasks and manual work periods, timer control, user search, and task assignment.
 
 ## Prerequisites
 
@@ -229,11 +229,15 @@ RUNRUNIT_APP_KEY=... RUNRUNIT_USER_TOKEN=... node dist/index.js
 
 ## Roadmap
 
-- **v0.1** ✅ — read-only core
-- **v0.2** ✅ — write operations on tasks (create/update/comment/status change)
+- **v0.1** ✅ — read-only core: users, clients, teams, boards, pipelines, projects, tasks, comments, time entries
+- **v0.2** ✅ — write operations on tasks (create/update/comment/status change); `tasks_get_description`
 - **v0.3** ✅ — time tracking (timer play/pause, manual work period CRUD)
-- **v0.4** ✅ — custom fields, tags (attachments deferred)
-- **v0.5** — webhooks, reports
+- **v0.4** ✅ — custom fields, tags; README usage examples; fixed `tasks_update_status` and `pipelines_list` endpoints
+- **v0.5** ✅ — search by name (`search_term`) in `clients_list` and `projects_list`
+- **v0.6** ✅ — `task_types_list` to discover `type_id` values
+- **v0.7** ✅ — `tasks_create` hardening: `type_id` required, `responsible_id` accepts the user slug (string) and is optional
+- **v0.8** ✅ — `users_search` (lean output), `tasks_assign` (assign/unassign responsible), `user_id` filter (requester) in `tasks_list`
+- **Next** — attachments, webhooks, reports
 
 ## License
 

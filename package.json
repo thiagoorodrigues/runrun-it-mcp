@@ -1,7 +1,7 @@
 {
   "name": "runrun-it-mcp",
   "version": "0.8.1",
-  "description": "MCP server for Runrun.it API (read-only, v0.1).",
+  "description": "MCP server for the Runrun.it API: tasks, projects, time tracking, custom fields, tags and more, usable from Claude and other MCP clients.",
   "license": "MIT",
   "type": "module",
   "bin": {
