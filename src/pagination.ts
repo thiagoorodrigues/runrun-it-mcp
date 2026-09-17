@@ -16,6 +16,30 @@ export type PaginationInput = {
   limit?: number;
 };
 
+export const MAX_PAGE_SIZE = 100;
+
+/**
+ * Fetch every page of a list endpoint sequentially, starting at `startPage`,
+ * and return the merged array. Stops when a page returns fewer than `limit`
+ * items (or a non-array payload).
+ */
+export async function fetchAllPages<T = unknown>(
+  fetchPage: (page: number, limit: number) => Promise<unknown>,
+  startPage: number,
+  limit: number
+): Promise<T[]> {
+  const items: T[] = [];
+  let page = startPage;
+  for (;;) {
+    const data = await fetchPage(page, limit);
+    if (!Array.isArray(data)) break;
+    items.push(...(data as T[]));
+    if (data.length < limit) break;
+    page += 1;
+  }
+  return items;
+}
+
 export function applyPaginationDefaults(input: PaginationInput): {
   page: number;
   limit: number;

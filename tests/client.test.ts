@@ -268,3 +268,51 @@ describe("RunrunClient.put", () => {
     await expect(client.put("/tasks/1", {})).rejects.toBeInstanceOf(RunrunApiError);
   });
 });
+
+describe("RunrunClient.getBinary", () => {
+  beforeEach(() => {
+    global.fetch = vi.fn();
+  });
+
+  it("sends auth headers and returns the body as a Buffer with its content type", async () => {
+    const bytes = new Uint8Array([0x89, 0x50, 0x4e, 0x47]);
+    (global.fetch as any).mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: new Headers({ "content-type": "image/png" }),
+      arrayBuffer: async () => bytes.buffer
+    });
+    const client = new RunrunClient(baseConfig);
+    const res = await client.getBinary("/documents/41105664/download");
+    const call = (global.fetch as any).mock.calls[0];
+    expect(call[0]).toBe("https://runrun.it/api/v1.0/documents/41105664/download");
+    expect(call[1].headers["App-Key"]).toBe("app-key-xyz");
+    expect(call[1].headers["User-Token"]).toBe("user-token-abc");
+    expect(call[1].redirect).toBe("follow");
+    expect(res.contentType).toBe("image/png");
+    expect(Buffer.from(res.data).equals(Buffer.from(bytes))).toBe(true);
+  });
+
+  it("strips charset parameters from the content type", async () => {
+    (global.fetch as any).mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: new Headers({ "content-type": "image/svg+xml; charset=utf-8" }),
+      arrayBuffer: async () => new Uint8Array([1]).buffer
+    });
+    const client = new RunrunClient(baseConfig);
+    const res = await client.getBinary("/documents/1/download");
+    expect(res.contentType).toBe("image/svg+xml");
+  });
+
+  it("throws RunrunApiError on non-2xx", async () => {
+    (global.fetch as any).mockResolvedValue({
+      ok: false,
+      status: 404,
+      headers: new Headers(),
+      text: async () => "Not Found"
+    });
+    const client = new RunrunClient(baseConfig);
+    await expect(client.getBinary("/documents/999/download")).rejects.toBeInstanceOf(RunrunApiError);
+  });
+});

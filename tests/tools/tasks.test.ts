@@ -76,6 +76,54 @@ describe("tasks_comments_list", () => {
     await tool.handler({ task_id: 100 });
     expect(client.get).toHaveBeenCalledWith("/tasks/100/comments", { page: 1, limit: 50 });
   });
+
+  it("forwards explicit page and limit", async () => {
+    const client = mockClient(async () => []);
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_comments_list")!;
+    await tool.handler({ task_id: 100, page: 3, limit: 10 });
+    expect(client.get).toHaveBeenCalledWith("/tasks/100/comments", { page: 3, limit: 10 });
+  });
+
+  it("with all=true fetches every page and returns the merged list", async () => {
+    const pages: Record<number, unknown[]> = {
+      1: [{ id: 1 }, { id: 2 }],
+      2: [{ id: 3 }, { id: 4 }],
+      3: [{ id: 5 }]
+    };
+    const client = mockClient(async (_path, params) => pages[(params as any).page] ?? []);
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_comments_list")!;
+    const res = await tool.handler({ task_id: 100, all: true, limit: 2 });
+    expect(client.get).toHaveBeenCalledTimes(3);
+    expect(client.get).toHaveBeenNthCalledWith(1, "/tasks/100/comments", { page: 1, limit: 2 });
+    expect(client.get).toHaveBeenNthCalledWith(2, "/tasks/100/comments", { page: 2, limit: 2 });
+    expect(client.get).toHaveBeenNthCalledWith(3, "/tasks/100/comments", { page: 3, limit: 2 });
+    expect(JSON.parse(res.content[0].text)).toEqual([
+      { id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }
+    ]);
+  });
+
+  it("with all=true stops when a page comes back empty", async () => {
+    const pages: Record<number, unknown[]> = { 1: [{ id: 1 }, { id: 2 }] };
+    const client = mockClient(async (_path, params) => pages[(params as any).page] ?? []);
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_comments_list")!;
+    const res = await tool.handler({ task_id: 100, all: true, limit: 2 });
+    expect(client.get).toHaveBeenCalledTimes(2);
+    expect(JSON.parse(res.content[0].text)).toEqual([{ id: 1 }, { id: 2 }]);
+  });
+
+  it("with all=true uses max page size when limit is omitted", async () => {
+    const client = mockClient(async () => []);
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_comments_list")!;
+    await tool.handler({ task_id: 100, all: true });
+    expect(client.get).toHaveBeenCalledWith("/tasks/100/comments", { page: 1, limit: 100 });
+  });
+
+  it("returns isError on API error", async () => {
+    const client = mockClient(async () => { throw new RunrunApiError(404, "Not Found", "/tasks/999/comments"); });
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_comments_list")!;
+    const res = await tool.handler({ task_id: 999 });
+    expect(res.isError).toBe(true);
+  });
 });
 
 describe("tasks_time_entries_list", () => {
@@ -240,6 +288,63 @@ describe("tasks_comments_create", () => {
   });
 });
 
+describe("tasks_comments_update", () => {
+  it("calls PUT /comments/:comment_id with text", async () => {
+    const client = mockClient(
+      async () => ({}),
+      async () => ({}),
+      async () => ({}),
+      async () => ({}),
+      async () => ({ id: 55, text: "edited" })
+    );
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_comments_update")!;
+    const res = await tool.handler({ comment_id: 55, text: "edited" });
+    expect(client.put).toHaveBeenCalledWith("/comments/55", { comment: { text: "edited" } });
+    expect(JSON.parse(res.content[0].text)).toMatchObject({ id: 55, text: "edited" });
+  });
+
+  it("returns isError on API error", async () => {
+    const client = mockClient(
+      async () => ({}),
+      async () => ({}),
+      async () => ({}),
+      async () => ({}),
+      async () => { throw new RunrunApiError(404, "Not Found", "/comments/999"); }
+    );
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_comments_update")!;
+    const res = await tool.handler({ comment_id: 999, text: "x" });
+    expect(res.isError).toBe(true);
+  });
+});
+
+describe("tasks_comments_delete", () => {
+  it("calls DELETE /comments/:comment_id", async () => {
+    const client = mockClient(
+      async () => ({}),
+      async () => ({}),
+      async () => ({}),
+      async () => ({})
+    );
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_comments_delete")!;
+    const res = await tool.handler({ comment_id: 55 });
+    expect(client.delete).toHaveBeenCalledWith("/comments/55");
+    expect(res.isError).toBeUndefined();
+    expect(JSON.parse(res.content[0].text)).toEqual({ deleted: true, comment_id: 55 });
+  });
+
+  it("returns isError on API error", async () => {
+    const client = mockClient(
+      async () => ({}),
+      async () => ({}),
+      async () => ({}),
+      async () => { throw new RunrunApiError(404, "Not Found", "/comments/999"); }
+    );
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_comments_delete")!;
+    const res = await tool.handler({ comment_id: 999 });
+    expect(res.isError).toBe(true);
+  });
+});
+
 describe("tasks_get_description", () => {
   it("calls /tasks/:id/description", async () => {
     const client = mockClient(async () => ({ id: 68959, description: "<p>hello</p>" }));
@@ -255,6 +360,110 @@ describe("tasks_get_description", () => {
     });
     const tool = createTasksTools(client).find((t) => t.name === "tasks_get_description")!;
     const res = await tool.handler({ id: 999 });
+    expect(res.isError).toBe(true);
+  });
+});
+
+describe("tasks_get_description images", () => {
+  const html = '<p>oi</p><p><img src="/api/documents/41105664/download"></p>';
+  const png = Buffer.from([0x89, 0x50, 0x4e, 0x47]);
+
+  function clientWithImage() {
+    return mockClient(
+      async () => ({ id: 75014, description: html }),
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      async (path) => {
+        expect(path).toBe("/documents/41105664/download");
+        return { data: png, contentType: "image/png" };
+      }
+    );
+  }
+
+  it("appends an image block for each inline image by default", async () => {
+    const client = clientWithImage();
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_get_description")!;
+    const res = await tool.handler({ id: 75014 });
+    expect(res.content[0].type).toBe("text");
+    expect(JSON.parse((res.content[0] as { text: string }).text)).toMatchObject({ id: 75014 });
+    expect(res.content[1]).toEqual({ type: "image", data: png.toString("base64"), mimeType: "image/png" });
+  });
+
+  it("skips downloads when include_images is false", async () => {
+    const client = clientWithImage();
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_get_description")!;
+    const res = await tool.handler({ id: 75014, include_images: false });
+    expect(res.content).toHaveLength(1);
+    expect(client.getBinary).not.toHaveBeenCalled();
+  });
+
+  it("returns only the JSON when the description has no images", async () => {
+    const client = mockClient(async () => ({ id: 1, description: "<p>sem imagem</p>" }));
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_get_description")!;
+    const res = await tool.handler({ id: 1 });
+    expect(res.content).toHaveLength(1);
+    expect(client.getBinary).not.toHaveBeenCalled();
+  });
+});
+
+describe("tasks_documents_list", () => {
+  it("calls /tasks/:id/documents", async () => {
+    const docs = [{ id: 41105664, file_name: "print.png", file_content_type: "image/png" }];
+    const client = mockClient(async () => docs);
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_documents_list")!;
+    const res = await tool.handler({ id: 75014 });
+    expect(client.get).toHaveBeenCalledWith("/tasks/75014/documents");
+    expect(JSON.parse((res.content[0] as { text: string }).text)).toEqual(docs);
+  });
+
+  it("returns isError on API error", async () => {
+    const client = mockClient(async () => {
+      throw new RunrunApiError(404, "Not Found", "/tasks/999/documents");
+    });
+    const tool = createTasksTools(client).find((t) => t.name === "tasks_documents_list")!;
+    const res = await tool.handler({ id: 999 });
+    expect(res.isError).toBe(true);
+  });
+});
+
+describe("documents_download", () => {
+  it("returns an image block for an image document", async () => {
+    const png = Buffer.from([0x89, 0x50, 0x4e, 0x47]);
+    const client = mockClient(
+      async () => ({}),
+      undefined, undefined, undefined, undefined,
+      async (path) => {
+        expect(path).toBe("/documents/41105664/download");
+        return { data: png, contentType: "image/png" };
+      }
+    );
+    const tool = createTasksTools(client).find((t) => t.name === "documents_download")!;
+    const res = await tool.handler({ id: 41105664 });
+    expect(res.content).toEqual([{ type: "image", data: png.toString("base64"), mimeType: "image/png" }]);
+  });
+
+  it("returns a text note for a non-image document", async () => {
+    const client = mockClient(
+      async () => ({}),
+      undefined, undefined, undefined, undefined,
+      async () => ({ data: Buffer.from("%PDF"), contentType: "application/pdf" })
+    );
+    const tool = createTasksTools(client).find((t) => t.name === "documents_download")!;
+    const res = await tool.handler({ id: 7 });
+    expect(res.content[0].type).toBe("text");
+    expect((res.content[0] as { text: string }).text).toContain("application/pdf");
+  });
+
+  it("returns isError when the download fails", async () => {
+    const client = mockClient(
+      async () => ({}),
+      undefined, undefined, undefined, undefined,
+      async () => { throw new RunrunApiError(404, "Not Found", "/documents/9/download"); }
+    );
+    const tool = createTasksTools(client).find((t) => t.name === "documents_download")!;
+    const res = await tool.handler({ id: 9 });
     expect(res.isError).toBe(true);
   });
 });

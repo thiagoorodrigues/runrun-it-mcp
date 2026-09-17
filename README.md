@@ -2,7 +2,7 @@
 
 MCP server for [Runrun.it](https://runrun.it) — exposes the Runrun.it REST API as tools usable by Claude and other MCP clients.
 
-**Status:** v0.8. Exposes 33 tools for tasks, projects, clients, users, teams, boards, pipelines, task types, custom fields, tags, and time tracking. Includes read/write for tasks and manual work periods, timer control, user search, and task assignment.
+**Status:** v0.9. Exposes 35 tools for tasks, projects, clients, users, teams, boards, pipelines, task types, custom fields, tags, and time tracking. Includes read/write for tasks and manual work periods, timer control, user search, and task assignment.
 
 ## Prerequisites
 
@@ -112,14 +112,18 @@ In Runrun.it: **Configurações → Integrações → App** to get the `App-Key`
 | `tasks_list` | List tasks (filter by board, project, client, responsible/assignee, requester via `user_id`, type, closed status) |
 | `task_types_list` | List task types (discover the `type_id` values used by tasks) |
 | `tasks_get` | Get a task by ID |
-| `tasks_comments_list` | List comments on a task |
+| `tasks_comments_list` | List comments on a task (`all: true` fetches every page) |
 | `tasks_time_entries_list` | List manual work periods for a task |
 | `tasks_create` | Create a new task (requires title, project_id, type_id) |
 | `tasks_update` | Update fields of an existing task |
 | `tasks_assign` | Assign a task to a responsible user, or unassign it |
 | `tasks_update_status` | Move a task to a different board stage |
 | `tasks_comments_create` | Add a comment to a task |
-| `tasks_get_description` | Get the full description of a task (separate endpoint) |
+| `tasks_comments_update` | Edit the text of an existing comment |
+| `tasks_comments_delete` | Delete a comment |
+| `tasks_get_description` | Get the full description of a task; inline images are downloaded and returned as image blocks (`include_images: false` to skip) |
+| `tasks_documents_list` | List documents (attachments) of a task: screenshots, files sent via request forms, etc. |
+| `documents_download` | Download a document by id and return it as an image block (non-images return a text note) |
 | `tasks_play` | Start the timer on a task |
 | `tasks_pause` | Pause the timer on a task |
 | `manual_work_periods_list` | List manual work periods (logged hours) |
@@ -132,7 +136,7 @@ In Runrun.it: **Configurações → Integrações → App** to get the `App-Key`
 | `tasks_update_tags` | Replace all tags on a task |
 | `tags_search` | Search existing tags by name |
 
-All list tools support `page` (default 1) and `limit` (default 50, max 100).
+All list tools support `page` (default 1) and `limit` (default 50, max 100). `tasks_comments_list` also accepts `all: true` to walk every page and return the merged list.
 
 ## Examples
 
@@ -188,6 +192,24 @@ The examples below show natural-language prompts and the responses Claude gives 
 
 ---
 
+### Images and attachments
+
+**User:** Read the description of task #75014 and tell me what the error in the screenshot says.
+
+**Claude:** The description reports a blocked approval in the Portal Gestão module. The embedded screenshot shows the banner: *"Erro! Patrimônios não vinculados a esta venda Estoque: 6-PAG28629, PAG32646, ..."* with support code 120097992.
+
+> `tasks_get_description` returns the HTML description followed by one image block per inline `<img src="/api/documents/{id}/download">`, so Claude can look at the screenshot directly. Pass `include_images: false` to get only the JSON.
+
+---
+
+**User:** The request form on task #75016 mentions an attached image. Show me what it is.
+
+**Claude:** The task has one attachment, **imagem (7).png** (139 KB). It is a screenshot of the "Detalhes da Solicitação" modal on the provider onboarding screen, showing the read-only "Observação" field the requester wants to make editable.
+
+> Files attached to a task without being embedded in the description are listed by `tasks_documents_list`; `documents_download` returns any of them as an image block. Non-image files come back as a text note with the MIME type and size. Images are capped at 4 MB each and 10 per call.
+
+---
+
 ### Custom fields and tags
 
 **User:** Add the tags "frontend" and "urgent" to task #1237.
@@ -237,7 +259,9 @@ RUNRUNIT_APP_KEY=... RUNRUNIT_USER_TOKEN=... node dist/index.js
 - **v0.6** ✅ — `task_types_list` to discover `type_id` values
 - **v0.7** ✅ — `tasks_create` hardening: `type_id` required, `responsible_id` accepts the user slug (string) and is optional
 - **v0.8** ✅ — `users_search` (lean output), `tasks_assign` (assign/unassign responsible), `user_id` filter (requester) in `tasks_list`
-- **Next** — attachments, webhooks, reports
+- **v0.9** ✅ — comments: `tasks_comments_update`, `tasks_comments_delete`, `all` option in `tasks_comments_list`
+- **v0.10** ✅ — images: `tasks_get_description` embeds inline images as image blocks; `tasks_documents_list` and `documents_download` for task attachments
+- **Next** — webhooks, reports
 
 ## License
 

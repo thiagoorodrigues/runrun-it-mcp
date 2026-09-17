@@ -1,8 +1,9 @@
 import { z } from "zod";
 import type { RunrunClient } from "../client.js";
 import type { ToolDefinition } from "./types.js";
-import { paginationFields, applyPaginationDefaults } from "../pagination.js";
+import { paginationFields, applyPaginationDefaults, fetchAllPages, MAX_PAGE_SIZE } from "../pagination.js";
 import { successResponse, genericErrorResponse } from "../errors.js";
+import { extractDocumentIds, fetchImageBlocks, documentToBlock, documentDownloadPath } from "../documents.js";
 
 export function createTasksTools(client: RunrunClient): ToolDefinition[] {
   return [
@@ -74,16 +75,25 @@ export function createTasksTools(client: RunrunClient): ToolDefinition[] {
       name: "tasks_comments_list",
       config: {
         title: "List Task Comments",
-        description: "List comments on a task.",
+        description:
+          "List comments on a task. Set all=true to fetch every page (starting at page, using limit as page size, default 100) and return the merged list.",
         inputSchema: {
           task_id: z.number().int().positive(),
-          ...paginationFields
+          ...paginationFields,
+          all: z.boolean().optional().describe("Fetch all pages and return the merged list (default false)")
         }
       },
-      handler: async (input: { task_id: number; page?: number; limit?: number }) => {
+      handler: async (input: { task_id: number; page?: number; limit?: number; all?: boolean }) => {
         try {
+          const path = `/tasks/${input.task_id}/comments`;
+          if (input.all) {
+            const startPage = input.page ?? 1;
+            const limit = input.limit ?? MAX_PAGE_SIZE;
+            const data = await fetchAllPages((page, limit) => client.get(path, { page, limit }), startPage, limit);
+            return successResponse(data);
+          }
           const { page, limit } = applyPaginationDefaults(input);
-          const data = await client.get(`/tasks/${input.task_id}/comments`, { page, limit });
+          const data = await client.get(path, { page, limit });
           return successResponse(data);
         } catch (e) {
           return genericErrorResponse(e);
@@ -268,18 +278,105 @@ export function createTasksTools(client: RunrunClient): ToolDefinition[] {
       }
     },
     {
+      name: "tasks_comments_update",
+      config: {
+        title: "Update Task Comment",
+        description: "Edit the text of an existing comment. Get comment_id from tasks_comments_list.",
+        inputSchema: {
+          comment_id: z.number().int().positive(),
+          text: z.string().min(1)
+        }
+      },
+      handler: async (input: { comment_id: number; text: string }) => {
+        try {
+          const data = await client.put(`/comments/${input.comment_id}`, {
+            comment: { text: input.text }
+          });
+          return successResponse(data);
+        } catch (e) {
+          return genericErrorResponse(e);
+        }
+      }
+    },
+    {
+      name: "tasks_comments_delete",
+      config: {
+        title: "Delete Task Comment",
+        description: "Delete a comment. Get comment_id from tasks_comments_list. This cannot be undone.",
+        inputSchema: {
+          comment_id: z.number().int().positive()
+        }
+      },
+      handler: async (input: { comment_id: number }) => {
+        try {
+          await client.delete(`/comments/${input.comment_id}`);
+          return successResponse({ deleted: true, comment_id: input.comment_id });
+        } catch (e) {
+          return genericErrorResponse(e);
+        }
+      }
+    },
+    {
       name: "tasks_get_description",
       config: {
         title: "Get Task Description",
-        description: "Get the full description (rich text) of a task. The main tasks_get endpoint does not include the description field — use this tool to fetch it separately.",
+        description:
+          "Get the full description (rich text HTML) of a task. The main tasks_get endpoint does not include the description field — use this tool to fetch it separately. By default, images embedded inline in the description (<img src=\"/api/documents/{id}/download\">) are downloaded and returned as image content blocks after the JSON, so they can be viewed directly. Images attached to the task but not embedded in the description are listed by tasks_documents_list.",
+        inputSchema: {
+          id: z.number().int().positive(),
+          include_images: z
+            .boolean()
+            .optional()
+            .describe("Download inline images and return them as image blocks (default true)")
+        }
+      },
+      handler: async (input: { id: number; include_images?: boolean }) => {
+        try {
+          const data = await client.get<{ description?: string | null }>(`/tasks/${input.id}/description`);
+          const response = successResponse(data);
+          if (input.include_images === false) return response;
+          const ids = extractDocumentIds(data?.description);
+          if (ids.length === 0) return response;
+          const images = await fetchImageBlocks(client, ids);
+          return { content: [...response.content, ...images] };
+        } catch (e) {
+          return genericErrorResponse(e);
+        }
+      }
+    },
+    {
+      name: "tasks_documents_list",
+      config: {
+        title: "List Task Documents",
+        description:
+          "List documents (attachments) of a task: screenshots, images, PDFs and other files uploaded to the task, including files attached via request forms that do not appear inline in the description. Returns metadata only (id, file_name, file_content_type, file_size, uploader). Use documents_download with a document id to view an image.",
         inputSchema: {
           id: z.number().int().positive()
         }
       },
       handler: async (input: { id: number }) => {
         try {
-          const data = await client.get(`/tasks/${input.id}/description`);
+          const data = await client.get(`/tasks/${input.id}/documents`);
           return successResponse(data);
+        } catch (e) {
+          return genericErrorResponse(e);
+        }
+      }
+    },
+    {
+      name: "documents_download",
+      config: {
+        title: "Download Document",
+        description:
+          "Download a Runrun.it document by id and return it as an image content block so it can be viewed. Get ids from tasks_documents_list or from <img src=\"/api/documents/{id}/download\"> tags in a task description. Non-image files (PDF, DOCX, etc.) are not embedded; a text note with the MIME type and size is returned instead.",
+        inputSchema: {
+          id: z.number().int().positive()
+        }
+      },
+      handler: async (input: { id: number }) => {
+        try {
+          const file = await client.getBinary(documentDownloadPath(input.id));
+          return { content: [documentToBlock(input.id, file)] };
         } catch (e) {
           return genericErrorResponse(e);
         }

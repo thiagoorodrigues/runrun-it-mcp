@@ -1,5 +1,9 @@
+export type McpTextContent = { type: "text"; text: string };
+export type McpImageContent = { type: "image"; data: string; mimeType: string };
+export type McpContent = McpTextContent | McpImageContent;
+
 export type McpToolResponse = {
-  content: Array<{ type: "text"; text: string }>;
+  content: McpContent[];
   isError?: boolean;
 };
 
